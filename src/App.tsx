@@ -130,7 +130,9 @@ export default function App() {
   // Home/Blog View
   if (currentView === 'home') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <>
+        <Toaster position="top-right" richColors />
+        <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
           <div className="max-w-6xl mx-auto px-4 py-6">
@@ -185,14 +187,17 @@ export default function App() {
             <p>© 2024 My Blog. All rights reserved.</p>
           </div>
         </footer>
-      </div>
+        </div>
+      </>
     );
   }
 
   // Article Detail View
   if (currentView === 'article' && selectedArticle) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <>
+        <Toaster position="top-right" richColors />
+        <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -259,32 +264,34 @@ export default function App() {
             accessToken={accessToken}
           />
         </article>
-      </div>
+        </div>
+      </>
     );
   }
 
   // Admin Login View
   if (currentView === 'admin-login') {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <AdminLogin onLoginSuccess={handleLoginSuccess} />
+      </>
+    );
   }
 
   // Admin Dashboard View
   if (currentView === 'admin-dashboard' && accessToken) {
     return (
       <>
+        <Toaster position="top-right" richColors />
         <AdminDashboard
           accessToken={accessToken}
           onLogout={handleLogout}
           onViewBlog={handleBackToHome}
         />
-        <Toaster position="top-right" richColors />
       </>
     );
   }
 
-  return (
-    <>
-      <Toaster position="top-right" richColors />
-    </>
-  );
+  return null;
 }

@@ -171,4 +171,4 @@ For issues and questions, please open an issue on GitHub.
 
 ---
 
-Original design from [Figma](https://www.figma.com/design/sMX6i9bhhIWAYnbHLfStbP/Blog-Website-Development)
+
