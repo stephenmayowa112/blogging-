@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Lock } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
+import { toast } from "sonner";
 
 const supabase = createClient(
   `https://${projectId}.supabase.co`,
@@ -30,6 +31,21 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(loginEmail)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password length
+    if (loginPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -60,6 +76,28 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // Validate name
+    if (signupName.trim().length < 2) {
+      setError('Name must be at least 2 characters');
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(signupEmail)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (signupPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -109,7 +147,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -8,6 +8,7 @@ import { AdminLogin } from "./components/AdminLogin";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { projectId, publicAnonKey } from "./utils/supabase/info";
 import { createClient } from "@supabase/supabase-js";
+import { Toaster, toast } from "sonner";
 
 const supabase = createClient(
   `https://${projectId}.supabase.co`,
@@ -33,7 +34,10 @@ export default function App() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    // Restore session from localStorage
+    return localStorage.getItem('access_token');
+  });
 
   useEffect(() => {
     checkSession();
@@ -44,6 +48,7 @@ export default function App() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       setAccessToken(session.access_token);
+      localStorage.setItem('access_token', session.access_token);
     }
   };
 
@@ -61,6 +66,7 @@ export default function App() {
 
       if (!response.ok) {
         console.error('Failed to load articles:', await response.text());
+        toast.error('Failed to load articles. Please try again.');
         return;
       }
 
@@ -68,6 +74,7 @@ export default function App() {
       setArticles(data.articles || []);
     } catch (error) {
       console.error('Error loading articles:', error);
+      toast.error('Unable to connect to the server. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -86,6 +93,7 @@ export default function App() {
 
       if (!response.ok) {
         console.error('Failed to load article:', await response.text());
+        toast.error('Failed to load article. Please try again.');
         return;
       }
 
@@ -95,6 +103,7 @@ export default function App() {
       window.scrollTo(0, 0);
     } catch (error) {
       console.error('Error loading article:', error);
+      toast.error('Unable to load article. Please check your connection.');
     }
   };
 
@@ -106,12 +115,16 @@ export default function App() {
 
   const handleLoginSuccess = (token: string) => {
     setAccessToken(token);
+    localStorage.setItem('access_token', token);
     setCurrentView('admin-dashboard');
+    toast.success('Successfully logged in!');
   };
 
   const handleLogout = () => {
     setAccessToken(null);
+    localStorage.removeItem('access_token');
     setCurrentView('home');
+    toast.success('Successfully logged out');
   };
 
   // Home/Blog View
@@ -226,6 +239,7 @@ export default function App() {
             <div className="mb-8 aspect-video">
               <iframe
                 src={selectedArticle.videoUrl}
+                title={`Video for ${selectedArticle.title}`}
                 className="w-full h-full rounded-lg"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -257,13 +271,20 @@ export default function App() {
   // Admin Dashboard View
   if (currentView === 'admin-dashboard' && accessToken) {
     return (
-      <AdminDashboard
-        accessToken={accessToken}
-        onLogout={handleLogout}
-        onViewBlog={handleBackToHome}
-      />
+      <>
+        <AdminDashboard
+          accessToken={accessToken}
+          onLogout={handleLogout}
+          onViewBlog={handleBackToHome}
+        />
+        <Toaster position="top-right" richColors />
+      </>
     );
   }
 
-  return null;
+  return (
+    <>
+      <Toaster position="top-right" richColors />
+    </>
+  );
 }

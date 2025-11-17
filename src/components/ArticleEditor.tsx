@@ -5,6 +5,7 @@ import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 interface Article {
   id?: string;
@@ -44,13 +45,53 @@ export function ArticleEditor({ article, onSave, onCancel, saving = false }: Art
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
+
+    if (title.trim().length < 3) {
+      toast.error('Title must be at least 3 characters');
+      return;
+    }
+
+    if (!content.trim()) {
+      toast.error('Content is required');
+      return;
+    }
+
+    if (content.trim().length < 10) {
+      toast.error('Content must be at least 10 characters');
+      return;
+    }
+
+    // Validate URLs if provided
+    const urlPattern = /^https?:\/\/.+/;
+    
+    if (imageUrl && !urlPattern.test(imageUrl.trim())) {
+      toast.error('Image URL must be a valid HTTP/HTTPS URL');
+      return;
+    }
+
+    if (videoUrl && !urlPattern.test(videoUrl.trim())) {
+      toast.error('Video URL must be a valid HTTP/HTTPS URL');
+      return;
+    }
+
+    if (audioUrl && !urlPattern.test(audioUrl.trim())) {
+      toast.error('Audio URL must be a valid HTTP/HTTPS URL');
+      return;
+    }
+
     onSave({
-      title,
-      content,
-      excerpt: excerpt || content.substring(0, 150) + '...',
-      imageUrl: imageUrl || "",
-      videoUrl: videoUrl || "",
-      audioUrl: audioUrl || "",
+      title: title.trim(),
+      content: content.trim(),
+      excerpt: excerpt.trim() || content.trim().substring(0, 150) + '...',
+      imageUrl: imageUrl.trim() || "",
+      videoUrl: videoUrl.trim() || "",
+      audioUrl: audioUrl.trim() || "",
     });
   };
 
@@ -99,6 +140,9 @@ export function ArticleEditor({ article, onSave, onCancel, saving = false }: Art
                 rows={15}
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {content.length} characters
+              </p>
             </div>
 
             <div className="border-t pt-6">

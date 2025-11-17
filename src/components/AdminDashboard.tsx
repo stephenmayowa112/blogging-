@@ -5,6 +5,7 @@ import { Edit, Trash2, Plus, LogOut, Eye } from "lucide-react";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
 import { ArticleEditor } from "./ArticleEditor";
 import { createClient } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 const supabase = createClient(
   `https://${projectId}.supabase.co`,
@@ -54,6 +55,7 @@ export function AdminDashboard({ accessToken, onLogout, onViewBlog }: AdminDashb
 
       if (!response.ok) {
         console.error('Failed to load articles:', await response.text());
+        toast.error('Failed to load articles');
         return;
       }
 
@@ -61,6 +63,7 @@ export function AdminDashboard({ accessToken, onLogout, onViewBlog }: AdminDashb
       setArticles(data.articles || []);
     } catch (error) {
       console.error('Error loading articles:', error);
+      toast.error('Unable to load articles. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -84,15 +87,16 @@ export function AdminDashboard({ accessToken, onLogout, onViewBlog }: AdminDashb
       if (!response.ok) {
         const error = await response.text();
         console.error('Failed to create article:', error);
-        alert('Failed to create article');
+        toast.error('Failed to create article. Please try again.');
         return;
       }
 
       setIsCreating(false);
       await loadArticles();
+      toast.success('Article created successfully!');
     } catch (error) {
       console.error('Error creating article:', error);
-      alert('Failed to create article');
+      toast.error('Unable to create article. Please check your connection.');
     } finally {
       setSaving(false);
     }
@@ -118,15 +122,16 @@ export function AdminDashboard({ accessToken, onLogout, onViewBlog }: AdminDashb
       if (!response.ok) {
         const error = await response.text();
         console.error('Failed to update article:', error);
-        alert('Failed to update article');
+        toast.error('Failed to update article. Please try again.');
         return;
       }
 
       setEditingArticle(null);
       await loadArticles();
+      toast.success('Article updated successfully!');
     } catch (error) {
       console.error('Error updating article:', error);
-      alert('Failed to update article');
+      toast.error('Unable to update article. Please check your connection.');
     } finally {
       setSaving(false);
     }
@@ -151,14 +156,15 @@ export function AdminDashboard({ accessToken, onLogout, onViewBlog }: AdminDashb
       if (!response.ok) {
         const error = await response.text();
         console.error('Failed to delete article:', error);
-        alert('Failed to delete article');
+        toast.error('Failed to delete article. Please try again.');
         return;
       }
 
       await loadArticles();
+      toast.success('Article deleted successfully');
     } catch (error) {
       console.error('Error deleting article:', error);
-      alert('Failed to delete article');
+      toast.error('Unable to delete article. Please check your connection.');
     }
   };
 

@@ -5,6 +5,7 @@ import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { projectId, publicAnonKey } from "../utils/supabase/info";
+import { toast } from "sonner";
 
 interface Comment {
   id: string;
@@ -45,6 +46,7 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
 
       if (!response.ok) {
         console.error('Failed to load comments:', await response.text());
+        toast.error('Failed to load comments');
         return;
       }
 
@@ -52,6 +54,7 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
       setComments(data.comments || []);
     } catch (error) {
       console.error('Error loading comments:', error);
+      toast.error('Unable to load comments');
     } finally {
       setLoading(false);
     }
@@ -59,7 +62,27 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !content.trim()) return;
+    if (!name.trim() || !content.trim()) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    // Validate name length
+    if (name.trim().length < 2) {
+      toast.error('Name must be at least 2 characters');
+      return;
+    }
+
+    // Validate content length
+    if (content.trim().length < 3) {
+      toast.error('Comment must be at least 3 characters');
+      return;
+    }
+
+    if (content.trim().length > 1000) {
+      toast.error('Comment must be less than 1000 characters');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -71,23 +94,24 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
             'Content-Type': 'application/json',
             Authorization: `Bearer ${publicAnonKey}`,
           },
-          body: JSON.stringify({ name, content }),
+          body: JSON.stringify({ name: name.trim(), content: content.trim() }),
         }
       );
 
       if (!response.ok) {
         const error = await response.text();
         console.error('Failed to submit comment:', error);
-        alert('Failed to submit comment');
+        toast.error('Failed to submit comment. Please try again.');
         return;
       }
 
       setName("");
       setContent("");
       await loadComments();
+      toast.success('Comment submitted successfully!');
     } catch (error) {
       console.error('Error submitting comment:', error);
-      alert('Failed to submit comment');
+      toast.error('Unable to submit comment. Please check your connection.');
     } finally {
       setSubmitting(false);
     }
@@ -110,14 +134,15 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
       if (!response.ok) {
         const error = await response.text();
         console.error('Failed to delete comment:', error);
-        alert('Failed to delete comment');
+        toast.error('Failed to delete comment. Please try again.');
         return;
       }
 
       await loadComments();
+      toast.success('Comment deleted successfully');
     } catch (error) {
       console.error('Error deleting comment:', error);
-      alert('Failed to delete comment');
+      toast.error('Unable to delete comment. Please check your connection.');
     }
   };
 
@@ -150,7 +175,11 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
                 onChange={(e) => setContent(e.target.value)}
                 rows={4}
                 required
+                maxLength={1000}
               />
+              <p className="text-xs text-gray-500 mt-1 text-right">
+                {content.length}/1000 characters
+              </p>
             </div>
             <Button type="submit" disabled={submitting}>
               {submitting ? 'Submitting...' : 'Submit Comment'}
@@ -171,7 +200,7 @@ export function CommentSection({ articleId, isAdmin = false, accessToken }: Comm
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                       <User className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1">
